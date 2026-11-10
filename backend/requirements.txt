@@ -8,3 +8,5 @@ pytest
 httpx
 pytest-cov
 pydantic-settings
+pwdlib[argon2]
+PyJWT
