@@ -1,3 +1,4 @@
+
 def test_register_endpoint_success(client):
     response = client.post(
         "/api/auth/register",
@@ -5,6 +6,7 @@ def test_register_endpoint_success(client):
             "full_name": "Integration Test User",
             "email": "integration@example.com",
             "password": "TestPassword123!",
+            "phone_number": "9876543210",
         },
     )
 
@@ -13,7 +15,50 @@ def test_register_endpoint_success(client):
     data = response.json()
     assert data["full_name"] == "Integration Test User"
     assert data["email"] == "integration@example.com"
+    assert data["phone_number"] == "9876543210"
     assert "hashed_password" not in data
+
+
+def test_register_endpoint_without_phone_number(client):
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "No Phone User",
+            "email": "no-phone@example.com",
+            "password": "TestPassword123!",
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["phone_number"] is None
+
+
+def test_register_endpoint_rejects_duplicate_phone_number(client):
+    first_response = client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "First Phone User",
+            "email": "first-phone@example.com",
+            "password": "TestPassword123!",
+            "phone_number": "9876543210",
+        },
+    )
+
+    second_response = client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Second Phone User",
+            "email": "second-phone@example.com",
+            "password": "TestPassword123!",
+            "phone_number": "9876543210",
+        },
+    )
+
+    assert first_response.status_code == 201
+    assert second_response.status_code == 409
+    assert second_response.json()["detail"] == (
+        "Phone number is already registered"
+    )
 
 
 def test_register_endpoint_rejects_duplicate_email(client):
@@ -116,6 +161,7 @@ def test_get_me_endpoint_with_valid_token(client):
     )
 
     assert response.status_code == 200
+
     data = response.json()
     assert data["full_name"] == "Authenticated Test User"
     assert data["email"] == "authenticated-test@example.com"

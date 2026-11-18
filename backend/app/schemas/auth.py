@@ -1,3 +1,4 @@
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -5,6 +6,7 @@ class UserRegister(BaseModel):
     full_name: str = Field(min_length=2, max_length=100)
     email: str = Field(min_length=5, max_length=255)
     password: str = Field(min_length=8, max_length=128)
+    phone_number: str | None = Field(default=None, max_length=20)
 
 
 class UserLogin(BaseModel):
@@ -16,6 +18,7 @@ class UserResponse(BaseModel):
     id: int
     full_name: str
     email: str
+    phone_number: str | None = None
     is_active: bool
 
     model_config = ConfigDict(from_attributes=True)

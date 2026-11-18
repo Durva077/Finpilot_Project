@@ -17,6 +17,11 @@ class User(Base):
         index=True,
         nullable=False
     )
+    phone_number: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+        unique=True,
+    )
     hashed_password: Mapped[str] = mapped_column(
         String(255),
         nullable=False
@@ -31,3 +36,4 @@ class User(Base):
         server_default=func.now(),
         nullable=False
     )
+    
