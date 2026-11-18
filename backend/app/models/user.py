@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, String, func
+from sqlalchemy import Boolean, DateTime, Numeric, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -30,6 +30,12 @@ class User(Base):
         Boolean,
         default=True,
         nullable=False
+    )
+    starting_balance: Mapped[float] = mapped_column(
+    Numeric(12, 2),
+    default=0.00,
+    server_default="0.00",
+    nullable=False,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

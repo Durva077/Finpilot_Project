@@ -7,6 +7,7 @@ class UserRegister(BaseModel):
     email: str = Field(min_length=5, max_length=255)
     password: str = Field(min_length=8, max_length=128)
     phone_number: str | None = Field(default=None, max_length=20)
+    starting_balance: float = Field(default=0.00, ge=0)
 
 
 class UserLogin(BaseModel):
@@ -20,6 +21,7 @@ class UserResponse(BaseModel):
     email: str
     phone_number: str | None = None
     is_active: bool
+    starting_balance: float
 
     model_config = ConfigDict(from_attributes=True)
 
