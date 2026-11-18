@@ -1,6 +1,6 @@
 
 import './App.css'
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Link, useLocation, Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, ArrowLeftRight, Wallet, ChartNoAxesCombined, Tags, UserCircle, LogOut } from 'lucide-react'
 
 import ExpenseChart from './components/ExpenseChart.jsx'
@@ -11,17 +11,24 @@ import Categories from './pages/Categories.jsx'
 import Profile from './pages/Profile.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
+import { useAuth } from './context/AuthContext.jsx'
+import ProtectedRoute from './routes/ProtectedRoute.jsx'
 
 function Dashboard() {
+  const { user } = useAuth()
+
+  const firstName = user?.full_name?.split(' ')[0] || 'there'
+  const initial = user?.full_name?.charAt(0)?.toUpperCase() || 'U'
+
   return (
     <>
       <header className="topbar">
         <div>
           <p className="eyebrow">PERSONAL FINANCE</p>
-          <h1>Good morning!</h1>
+          <h1>Good morning, {firstName}!</h1>
           <p className="subtitle">Here's what's happening with your money.</p>
         </div>
-        <div className="profile">S</div>
+        <div className="profile">{initial}</div>
       </header>
 
       <section className="summary-grid">
@@ -64,6 +71,13 @@ const navigation = [
 
 function AppLayout() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
+
+  function handleLogout() {
+    logout()
+    navigate('/login')
+  }
 
   return (
     <div className="app">
@@ -86,23 +100,15 @@ function AppLayout() {
         </nav>
 
         <div className="sidebar-bottom">
-          <Link to="/login">
-            <LogOut size={17} /> Sign In
-          </Link>
+          <button type="button" onClick={handleLogout}>
+            <LogOut size={17} /> Logout
+          </button>
           <p>YOUR FINANCES, IN FOCUS.</p>
         </div>
       </aside>
 
       <main className="main-content">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/transactions" element={<Transactions />} />
-          <Route path="/budgets" element={<Budgets />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/categories" element={<Categories />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="*" element={<Dashboard />} />
-        </Routes>
+        <Outlet />
       </main>
     </div>
   )
@@ -114,7 +120,19 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="*" element={<AppLayout />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/transactions" element={<Transactions />} />
+            <Route path="/budgets" element={<Budgets />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/categories" element={<Categories />} />
+            <Route path="/profile" element={<Profile />} />
+          </Route>
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   )

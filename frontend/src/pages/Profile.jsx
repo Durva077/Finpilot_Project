@@ -1,26 +1,14 @@
 
-import { useState } from 'react'
-import { User, Mail, Phone, MapPin, Save } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import { Mail, Phone, MapPin, User } from 'lucide-react'
 
 function Profile() {
-  const [profile, setProfile] = useState({
-    name: 'Sunidhi',
-    email: 'sunidhi@example.com',
-    phone: '',
-    location: 'Goa, India',
-  })
+  const { user } = useAuth()
 
-  const [saved, setSaved] = useState(false)
-
-  function handleChange(event) {
-    setProfile({ ...profile, [event.target.name]: event.target.value })
-    setSaved(false)
-  }
-
-  function handleSubmit(event) {
-    event.preventDefault()
-    setSaved(true)
-  }
+  const name = user?.full_name || 'Not available yet'
+  const email = user?.email || 'Not available yet'
+  const phone = user?.phone_number || 'Not available yet'
+  const initial = user?.full_name?.charAt(0)?.toUpperCase() || 'U'
 
   return (
     <div className="page-content">
@@ -28,54 +16,50 @@ function Profile() {
         <div>
           <p className="eyebrow">YOUR ACCOUNT</p>
           <h1>My Profile</h1>
-          <p className="subtitle">Manage your personal information.</p>
+          <p className="subtitle">View your personal information.</p>
         </div>
       </header>
 
       <section className="profile-card">
         <div className="profile-banner">
-          <div className="profile-avatar">
-            {profile.name.charAt(0).toUpperCase() || 'U'}
-          </div>
+          <div className="profile-avatar">{initial}</div>
           <div>
-            <h2>{profile.name || 'Your Name'}</h2>
-            <p>{profile.email}</p>
+            <h2>{name}</h2>
+            <p>{email}</p>
           </div>
         </div>
 
-        <form className="profile-form" onSubmit={handleSubmit}>
+        <div className="profile-form">
           <h2>Personal Information</h2>
 
           <label>Full Name</label>
           <div className="profile-input">
             <User size={18} />
-            <input name="name" value={profile.name} onChange={handleChange} required />
+            <input value={name} readOnly />
           </div>
 
           <label>Email Address</label>
           <div className="profile-input">
             <Mail size={18} />
-            <input name="email" type="email" value={profile.email} onChange={handleChange} required />
+            <input value={email} type="email" readOnly />
           </div>
 
           <label>Phone Number</label>
           <div className="profile-input">
             <Phone size={18} />
-            <input name="phone" value={profile.phone} onChange={handleChange} placeholder="Enter phone number" />
+            <input value={phone} readOnly />
           </div>
 
           <label>Location</label>
           <div className="profile-input">
             <MapPin size={18} />
-            <input name="location" value={profile.location} onChange={handleChange} />
+            <input value="Not available yet" readOnly />
           </div>
 
-          <button className="add-button" type="submit">
-            <Save size={17} /> Save Changes
-          </button>
-
-          {saved && <p className="success-message">Profile changes saved for this session.</p>}
-        </form>
+          <p className="subtitle">
+            Profile editing will be available once the backend profile endpoints are implemented.
+          </p>
+        </div>
       </section>
     </div>
   )

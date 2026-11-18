@@ -1,16 +1,39 @@
-
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Wallet } from 'lucide-react'
+import { loginUser, getCurrentUser } from '../api/authService'
+import { useAuth } from '../context/AuthContext'
 
 function Login() {
   const navigate = useNavigate()
+  const { login } = useAuth()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
-    navigate('/')
+    setError('')
+    setLoading(true)
+
+    try {
+      const data = await loginUser({ email, password })
+
+      const user = await getCurrentUser(data.access_token)
+
+      login(user, data.access_token)
+
+      navigate('/')
+    } catch (err) {
+      setError(
+        err.response?.data?.detail ||
+        'Login failed. Please check your email and password.'
+      )
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -23,12 +46,32 @@ function Login() {
         <p className="subtitle">Your finances, all in one place.</p>
 
         <label>Email Address</label>
-        <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          required
+        />
 
         <label>Password</label>
-        <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" required />
+        <input
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          placeholder="Enter your password"
+          required
+        />
 
-        <button className="add-button auth-submit" type="submit">Sign In</button>
+        {error && <p className="error-message">{error}</p>}
+
+        <button
+          className="add-button auth-submit"
+          type="submit"
+          disabled={loading}
+        >
+          {loading ? 'Signing in...' : 'Sign In'}
+        </button>
 
         <p className="auth-switch">
           Don't have an account? <Link to="/register">Create one</Link>
