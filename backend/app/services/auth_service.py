@@ -32,10 +32,11 @@ def register_user(db: Session, user_data: UserRegister) -> User:
             raise ValueError("Phone number is already registered")
 
     new_user = User(
-        full_name=user_data.full_name,
-        email=user_data.email,
-        phone_number=user_data.phone_number,
-        hashed_password=hash_password(user_data.password),
+    full_name=user_data.full_name,
+    email=user_data.email,
+    phone_number=user_data.phone_number,
+    hashed_password=hash_password(user_data.password),
+    starting_balance=user_data.starting_balance,
     )
 
     db.add(new_user)

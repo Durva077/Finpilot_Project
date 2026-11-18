@@ -182,3 +182,35 @@ def test_get_me_endpoint_with_invalid_token(client):
     )
 
     assert response.status_code == 401
+
+def test_register_endpoint_with_starting_balance(client):
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Balance Test User",
+            "email": "balance@example.com",
+            "password": "TestPassword123!",
+            "starting_balance": 25000.00,
+        },
+    )
+
+    assert response.status_code == 201
+
+    data = response.json()
+    assert float(data["starting_balance"]) == 25000.00
+
+
+def test_register_endpoint_defaults_starting_balance_to_zero(client):
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Zero Balance User",
+            "email": "zero-balance@example.com",
+            "password": "TestPassword123!",
+        },
+    )
+
+    assert response.status_code == 201
+
+    data = response.json()
+    assert float(data["starting_balance"]) == 0.00
