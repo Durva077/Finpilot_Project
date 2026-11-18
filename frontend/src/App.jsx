@@ -1,4 +1,6 @@
 
+import { useEffect, useState } from 'react'
+import { getDashboardSummary } from './api/dashboardService'
 import './App.css'
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, ArrowLeftRight, Wallet, ChartNoAxesCombined, Tags, UserCircle, LogOut } from 'lucide-react'
@@ -14,8 +16,36 @@ import Register from './pages/Register.jsx'
 import { useAuth } from './context/AuthContext.jsx'
 import ProtectedRoute from './routes/ProtectedRoute.jsx'
 
+
 function Dashboard() {
   const { user } = useAuth()
+
+  const [summary, setSummary] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const data = await getDashboardSummary()
+        setSummary(data)
+      } catch (err) {
+        console.error('Dashboard error:', err)
+        setError('Unable to load dashboard data. Please refresh.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSummary()
+  }, [])
+
+  const formatCurrency = (amount) =>
+    new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2,
+    }).format(amount ?? 0)
 
   const firstName = user?.full_name?.split(' ')[0] || 'there'
   const initial = user?.full_name?.charAt(0)?.toUpperCase() || 'U'
@@ -26,40 +56,51 @@ function Dashboard() {
         <div>
           <p className="eyebrow">PERSONAL FINANCE</p>
           <h1>Good morning, {firstName}!</h1>
-          <p className="subtitle">Here's what's happening with your money.</p>
+          <p className="subtitle">
+            Here's what's happening with your money.
+          </p>
         </div>
         <div className="profile">{initial}</div>
       </header>
 
-      <section className="summary-grid">
-        <article className="summary-card">
-          <p>Total Balance</p>
-          <h2>₹84,500.00</h2>
-          <span>Across all accounts</span>
-        </article>
-        <article className="summary-card income">
-          <p>Monthly Income</p>
-          <h2>₹45,000.00</h2>
-          <span>This month</span>
-        </article>
-        <article className="summary-card expense">
-          <p>Monthly Expenses</p>
-          <h2>₹18,250.00</h2>
-          <span>This month</span>
-        </article>
-      </section>
+      {loading ? (
+        <p>Loading your financial summary...</p>
+      ) : error ? (
+        <p role="alert">{error}</p>
+      ) : (
+        <section className="summary-grid">
+          <article className="summary-card">
+            <p>Total Balance</p>
+            <h2>{formatCurrency(summary.current_balance)}</h2>
+            <span>Across all accounts</span>
+          </article>
+
+          <article className="summary-card income">
+            <p>Monthly Income</p>
+            <h2>{formatCurrency(summary.monthly_income)}</h2>
+            <span>This month</span>
+          </article>
+
+          <article className="summary-card expense">
+            <p>Monthly Expenses</p>
+            <h2>{formatCurrency(summary.monthly_expenses)}</h2>
+            <span>This month</span>
+          </article>
+        </section>
+      )}
 
       <ExpenseChart />
 
       <section className="welcome-card">
         <p className="eyebrow">YOUR MONEY, BETTER MANAGED</p>
         <h2>Make every rupee count.</h2>
-        <p>Track your spending, stay on budget, and build better financial habits.</p>
+        <p>
+          Track your spending, stay on budget, and build better financial habits.
+        </p>
       </section>
     </>
   )
 }
-
 const navigation = [
   { name: 'Overview', path: '/', icon: LayoutDashboard },
   { name: 'Transactions', path: '/transactions', icon: ArrowLeftRight },
