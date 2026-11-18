@@ -1,7 +1,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.api.budgets import router as budgets_router
 from app.core.config import settings
 from app.api.auth import router as auth_router
 from app.api.transactions import router as transactions_router
@@ -27,7 +27,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(transactions_router)
-
+app.include_router(budgets_router)
 
 @app.get("/")
 def root():
