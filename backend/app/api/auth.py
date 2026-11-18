@@ -1,7 +1,10 @@
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.dependencies.auth import get_current_user
 from app.db.session import get_db
+from app.models.user import User
 from app.schemas.auth import (
     UserRegister,
     UserResponse,
@@ -51,3 +54,14 @@ def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(error),
         ) from error
+
+
+@router.get(
+    "/me",
+    response_model=UserResponse,
+)
+def get_me(
+    current_user: User = Depends(get_current_user),
+):
+    """Return the currently authenticated user's details."""
+    return current_user
