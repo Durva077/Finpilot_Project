@@ -43,7 +43,7 @@ function Register() {
       await registerUser({
         full_name: form.name,
         email: form.email,
-        ...(form.phone.trim() && { phone: form.phone.trim() }),
+        ...(form.phone.trim() && { phone_number: form.phone.trim() }),
         password: form.password,
       })
 

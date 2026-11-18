@@ -48,7 +48,10 @@ function Profile() {
           <label>Phone Number</label>
           <div className="profile-input">
             <Phone size={18} />
-            <input value="Not available yet" readOnly />
+            <input
+              value={user?.phone_number || 'Not available yet'}
+              readOnly
+            />
           </div>
 
           <label>Location</label>

@@ -1,8 +1,7 @@
-
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Wallet } from 'lucide-react'
-import { loginUser } from '../api/authService'
+import { loginUser, getCurrentUser } from '../api/authService'
 import { useAuth } from '../context/AuthContext'
 
 function Login() {
@@ -22,10 +21,9 @@ function Login() {
     try {
       const data = await loginUser({ email, password })
 
-      login(
-        { email },
-        data.access_token
-      )
+      const user = await getCurrentUser(data.access_token)
+
+      login(user, data.access_token)
 
       navigate('/')
     } catch (err) {

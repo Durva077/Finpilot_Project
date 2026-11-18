@@ -17,8 +17,8 @@ import ProtectedRoute from './routes/ProtectedRoute.jsx'
 function Dashboard() {
   const { user } = useAuth()
 
-  const firstName = user?.name?.split(' ')[0] || 'there'
-  const initial = user?.name?.charAt(0)?.toUpperCase() || 'U'
+  const firstName = user?.full_name?.split(' ')[0] || 'there'
+  const initial = user?.full_name?.charAt(0)?.toUpperCase() || 'U'
 
   return (
     <>
