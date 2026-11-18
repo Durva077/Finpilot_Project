@@ -1,3 +1,4 @@
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -25,10 +26,14 @@ TestingSessionLocal = sessionmaker(
 )
 
 
-@pytest.fixture(scope="session", autouse=True)
+# Reset the test database before and after every test
+@pytest.fixture(autouse=True)
 def setup_test_database():
+    Base.metadata.drop_all(bind=test_engine)
     Base.metadata.create_all(bind=test_engine)
+
     yield
+
     Base.metadata.drop_all(bind=test_engine)
 
 
@@ -38,7 +43,6 @@ def db_session():
     try:
         yield db
     finally:
-        db.rollback()
         db.close()
 
 

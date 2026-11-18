@@ -1,3 +1,4 @@
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -11,7 +12,7 @@ from app.schemas.auth import UserRegister, TokenResponse
 
 
 def register_user(db: Session, user_data: UserRegister) -> User:
-    """Register a new user after checking email uniqueness."""
+    """Register a new user after checking email and phone uniqueness."""
 
     existing_user = db.scalar(
         select(User).where(User.email == user_data.email)
@@ -20,9 +21,20 @@ def register_user(db: Session, user_data: UserRegister) -> User:
     if existing_user:
         raise ValueError("Email is already registered")
 
+    if user_data.phone_number:
+        existing_phone = db.scalar(
+            select(User).where(
+                User.phone_number == user_data.phone_number
+            )
+        )
+
+        if existing_phone:
+            raise ValueError("Phone number is already registered")
+
     new_user = User(
         full_name=user_data.full_name,
         email=user_data.email,
+        phone_number=user_data.phone_number,
         hashed_password=hash_password(user_data.password),
     )
 
