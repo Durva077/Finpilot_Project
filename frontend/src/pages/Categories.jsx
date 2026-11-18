@@ -1,70 +1,67 @@
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
-  Plus, Utensils, ShoppingBag, Car, Home,
+  Utensils, ShoppingBag, Car, Home,
   HeartPulse, Film, GraduationCap, Briefcase,
-  Wallet, Laptop, Gift, Trash2,
+  Wallet, Laptop, Gift,
 } from 'lucide-react'
+import { getCategories } from '../api/categoryService'
 
-const initialCategories = [
-  { id: 1, name: 'Food & Dining', type: 'Expense', icon: Utensils, color: '#52775B' },
-  { id: 2, name: 'Shopping', type: 'Expense', icon: ShoppingBag, color: '#D28A69' },
-  { id: 3, name: 'Transportation', type: 'Expense', icon: Car, color: '#A5A779' },
-  { id: 4, name: 'Bills & Utilities', type: 'Expense', icon: Home, color: '#8B9B8B' },
-  { id: 5, name: 'Healthcare', type: 'Expense', icon: HeartPulse, color: '#C47759' },
-  { id: 6, name: 'Entertainment', type: 'Expense', icon: Film, color: '#9B86A6' },
-  { id: 7, name: 'Education', type: 'Expense', icon: GraduationCap, color: '#7894A5' },
-  { id: 8, name: 'Salary', type: 'Income', icon: Briefcase, color: '#52775B' },
-  { id: 9, name: 'Freelance', type: 'Income', icon: Laptop, color: '#7894A5' },
-  { id: 10, name: 'Gifts', type: 'Income', icon: Gift, color: '#D28A69' },
+const categoryIcons = [
+  Utensils, ShoppingBag, Car, Home,
+  HeartPulse, Film, GraduationCap, Briefcase,
+  Wallet, Laptop, Gift,
+]
+
+const categoryColors = [
+  '#52775B', '#D28A69', '#A5A779', '#8B9B8B',
+  '#C47759', '#9B86A6', '#7894A5',
 ]
 
 function Categories() {
-  const [categories, setCategories] = useState(initialCategories)
+  const [categories, setCategories] = useState([])
   const [filter, setFilter] = useState('All')
-  const [showForm, setShowForm] = useState(false)
-  const [name, setName] = useState('')
-  const [type, setType] = useState('Expense')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const filteredCategories = categories.filter(
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        setLoading(true)
+        setError('')
+
+        const data = await getCategories()
+        setCategories(data)
+      } catch (err) {
+        setError(
+          err.response?.data?.detail || 'Unable to load categories. Please try again.'
+        )
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCategories()
+  }, [])
+
+  const normalizedCategories = categories.map((category, index) => ({
+    ...category,
+    type: category.category_type === 'income' ? 'Income' : 'Expense',
+    icon: categoryIcons[index % categoryIcons.length],
+    color: categoryColors[index % categoryColors.length],
+  }))
+
+  const filteredCategories = normalizedCategories.filter(
     (category) => filter === 'All' || category.type === filter
   )
 
-  function addCategory(event) {
-    event.preventDefault()
+  const incomeCount = normalizedCategories.filter(
+    (category) => category.type === 'Income'
+  ).length
 
-    const trimmedName = name.trim()
-    if (!trimmedName) return
-
-    const duplicate = categories.some(
-      (category) => category.name.toLowerCase() === trimmedName.toLowerCase()
-        && category.type === type
-    )
-
-    if (duplicate) {
-      alert('This category already exists.')
-      return
-    }
-
-    setCategories((previous) => [
-      ...previous,
-      {
-        id: Date.now(),
-        name: trimmedName,
-        type,
-        icon: Wallet,
-        color: '#52775B',
-      },
-    ])
-
-    setName('')
-    setType('Expense')
-    setShowForm(false)
-  }
-
-  function deleteCategory(id) {
-    setCategories((previous) => previous.filter((item) => item.id !== id))
-  }
+  const expenseCount = normalizedCategories.filter(
+    (category) => category.type === 'Expense'
+  ).length
 
   return (
     <div className="page-content">
@@ -72,50 +69,11 @@ function Categories() {
         <div>
           <p className="eyebrow">ORGANIZE YOUR FINANCES</p>
           <h1>Categories</h1>
-          <p className="subtitle">Organize your income and expenses your way.</p>
+          <p className="subtitle">
+            Organize your income and expenses your way.
+          </p>
         </div>
-
-        <button className="add-button" onClick={() => setShowForm(!showForm)}>
-          <Plus size={18} /> Add Category
-        </button>
       </header>
-
-      {showForm && (
-        <form className="category-form" onSubmit={addCategory}>
-          <h2>Create a category</h2>
-
-          <label htmlFor="category-name">Category name</label>
-          <input
-            id="category-name"
-            type="text"
-            placeholder="e.g. Groceries"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            required
-          />
-
-          <label htmlFor="category-type">Category type</label>
-          <select
-            id="category-type"
-            value={type}
-            onChange={(event) => setType(event.target.value)}
-          >
-            <option value="Expense">Expense</option>
-            <option value="Income">Income</option>
-          </select>
-
-          <div className="category-form-actions">
-            <button type="submit" className="add-button">Save Category</button>
-            <button
-              type="button"
-              className="cancel-button"
-              onClick={() => setShowForm(false)}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
 
       <section className="summary-grid">
         <article className="summary-card">
@@ -126,13 +84,13 @@ function Categories() {
 
         <article className="summary-card income">
           <p>Income Categories</p>
-          <h2>{categories.filter((item) => item.type === 'Income').length}</h2>
+          <h2>{incomeCount}</h2>
           <span>Money received</span>
         </article>
 
         <article className="summary-card expense">
           <p>Expense Categories</p>
-          <h2>{categories.filter((item) => item.type === 'Expense').length}</h2>
+          <h2>{expenseCount}</h2>
           <span>Money spent</span>
         </article>
       </section>
@@ -155,39 +113,41 @@ function Categories() {
           </select>
         </div>
 
-        <div className="category-grid">
-          {filteredCategories.map((category) => {
-            const Icon = category.icon
+        {loading && <p className="empty-message">Loading categories...</p>}
 
-            return (
-              <article className="category-card" key={category.id}>
-                <div
-                  className="category-icon"
-                  style={{ backgroundColor: `${category.color}20`, color: category.color }}
-                >
-                  <Icon size={22} />
-                </div>
+        {error && <p className="empty-message">{error}</p>}
 
-                <div className="category-card-info">
-                  <strong>{category.name}</strong>
-                  <span>{category.type}</span>
-                </div>
+        {!loading && !error && (
+          <>
+            <div className="category-grid">
+              {filteredCategories.map((category) => {
+                const Icon = category.icon
 
-                <button
-                  className="delete-category"
-                  title={`Delete ${category.name}`}
-                  aria-label={`Delete ${category.name}`}
-                  onClick={() => deleteCategory(category.id)}
-                >
-                  <Trash2 size={17} />
-                </button>
-              </article>
-            )
-          })}
-        </div>
+                return (
+                  <article className="category-card" key={category.id}>
+                    <div
+                      className="category-icon"
+                      style={{
+                        backgroundColor: `${category.color}20`,
+                        color: category.color,
+                      }}
+                    >
+                      <Icon size={22} />
+                    </div>
 
-        {filteredCategories.length === 0 && (
-          <p className="empty-message">No categories found.</p>
+                    <div className="category-card-info">
+                      <strong>{category.name}</strong>
+                      <span>{category.type}</span>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+
+            {filteredCategories.length === 0 && (
+              <p className="empty-message">No categories found.</p>
+            )}
+          </>
         )}
       </section>
     </div>
