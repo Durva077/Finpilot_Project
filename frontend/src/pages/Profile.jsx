@@ -1,12 +1,13 @@
 
 import { useAuth } from '../context/AuthContext'
-import { User, Mail, Phone, MapPin } from 'lucide-react'
+import { Mail, Phone, MapPin, User } from 'lucide-react'
 
 function Profile() {
   const { user } = useAuth()
 
   const name = user?.full_name || 'Not available yet'
   const email = user?.email || 'Not available yet'
+  const phone = user?.phone_number || 'Not available yet'
   const initial = user?.full_name?.charAt(0)?.toUpperCase() || 'U'
 
   return (
@@ -21,9 +22,7 @@ function Profile() {
 
       <section className="profile-card">
         <div className="profile-banner">
-          <div className="profile-avatar">
-            {initial}
-          </div>
+          <div className="profile-avatar">{initial}</div>
           <div>
             <h2>{name}</h2>
             <p>{email}</p>
@@ -48,10 +47,7 @@ function Profile() {
           <label>Phone Number</label>
           <div className="profile-input">
             <Phone size={18} />
-            <input
-              value={user?.phone_number || 'Not available yet'}
-              readOnly
-            />
+            <input value={phone} readOnly />
           </div>
 
           <label>Location</label>
