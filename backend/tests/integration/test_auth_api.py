@@ -85,3 +85,54 @@ def test_login_endpoint_rejects_wrong_password(client):
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid email or password"
+
+
+def test_get_me_endpoint_with_valid_token(client):
+    registration = client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Authenticated Test User",
+            "email": "authenticated-test@example.com",
+            "password": "TestPassword123!",
+        },
+    )
+
+    assert registration.status_code == 201
+
+    login = client.post(
+        "/api/auth/login",
+        json={
+            "email": "authenticated-test@example.com",
+            "password": "TestPassword123!",
+        },
+    )
+
+    assert login.status_code == 200
+    token = login.json()["access_token"]
+
+    response = client.get(
+        "/api/auth/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["full_name"] == "Authenticated Test User"
+    assert data["email"] == "authenticated-test@example.com"
+    assert data["is_active"] is True
+    assert "hashed_password" not in data
+
+
+def test_get_me_endpoint_without_token(client):
+    response = client.get("/api/auth/me")
+
+    assert response.status_code == 401
+
+
+def test_get_me_endpoint_with_invalid_token(client):
+    response = client.get(
+        "/api/auth/me",
+        headers={"Authorization": "Bearer invalid.token.value"},
+    )
+
+    assert response.status_code == 401
